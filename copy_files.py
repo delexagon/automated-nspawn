@@ -90,6 +90,8 @@ def copy_files(source_root, target_root, filelist, users, groups):
       print(f"<{line}> is not formatted correctly")
     except PermissionError:
       print(f"<{line}> got a permission error")
+    except FileNotFoundError:
+      print(f"<{line}> got a file not found error (Its containing folder doesn't exist?)")
       
 def parse_users(passwd_file):
   users = {}
