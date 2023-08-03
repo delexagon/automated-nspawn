@@ -23,7 +23,7 @@ def copy_file(path1, path2, owner_id=None, group_id=None, perms=None):
   os.chown(path2, st.st_uid if owner_id == None else owner_id, st.st_gid if group_id == None else group_id)
   
 def recursive_folder_fix(path, owner_id=None, group_id=None, perms=None):
-  next_dirs = [path/d for d in os.listdir(path) if os.path.isdir(d)]
+  next_dirs = [path/d for d in os.listdir(path) if os.path.isdir(path/d)]
   if perms != None:
     os.chmod(path, perms)
   st = os.stat(path)
@@ -59,6 +59,7 @@ def copy_files(source_root, target_root, filelist, users, groups):
     owner_id = None
     group_id = None
     perms = None
+    folder_perms = None
     parts = line.split(' // ')
     for addition in parts[1:]:
       if addition.startswith("owned: "):
@@ -71,6 +72,12 @@ def copy_files(source_root, target_root, filelist, users, groups):
         try:
           perms = int(addition[len("perms: "):].strip(), 8)
         except:
+          pass None
+      elif addition.startswith("folder-perms: "):
+        # Interpret: 'owned: user:group' ; restraints user:group may be missing or could be an integer
+        try:
+          folder_perms = int(addition[len("folder-perms: "):].strip(), 8)
+        except:
           pass
     try:
       a, b = parts[0].split(' --> ')
@@ -81,7 +88,7 @@ def copy_files(source_root, target_root, filelist, users, groups):
       if os.path.isdir(tru_a):
         remove(tru_b)
         shutil.copytree(tru_a, tru_b, symlinks=True, copy_function=lambda a,b: copy_file(a, b, owner_id=owner_id, group_id=group_id, perms=perms))
-        recursive_folder_fix(tru_b, owner_id=owner_id, group_id=group_id, perms=perms)
+        recursive_folder_fix(tru_b, owner_id=owner_id, group_id=group_id, perms=folder_perms)
       elif os.path.isfile(tru_a):
         copy_file(tru_a, tru_b, owner_id=owner_id, group_id=group_id, perms=perms)
       else:
