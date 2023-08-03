@@ -17,6 +17,7 @@ Effects:
  - Adds debian files to chroots-container-name
  - Appends 'container-name project-name' to config.txt
  - Runs the script in projects/project-name/outside/init.sh (if it exists)
+ - If there is a script projects/project-name/before_copy/init, copies it into /root/before_copy in the chroot and runs it as root from the context of the chroot
  - Copies all files listed in projects/project-name/copy/init.cp into the chroot as specified (if it exists) (see template - file format is self evident)
  - If there is a script projects/project-name/start/init, copies it into /root/init in the chroot and runs it as root from the context of the chroot
 remove: removes a chroot
@@ -26,6 +27,7 @@ Effects:
 whatever: starts systemd-nspawn
 Effects:
  - Runs the script in projects/project-name/outside/whatever.sh - this modifies the chroot permanently (if it exists)
+  - If there is a script projects/project-name/before_copy/whatever, copies it into /root/whatever in the chroot and runs it as root from the context of the chroot - this modifies the chroot permanently
  - Copies all files listed in projects/project-name/copy/whatever.cp into the chroot as specified - this modifies the chroot permanently (if it exists)
  - If there is a script projects/project-name/start/whatever, copies it into /root/whatever in the chroot and runs it as root from the context of the chroot - this modifies the chroot permanently
  - Runs systemd-nspawn with systemd init process (requires the chroot to have installed systemd) in an ephemeral directory. If -p is specified, changes made in the chroot are persistent
