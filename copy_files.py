@@ -91,7 +91,7 @@ def copy_files(source_root, target_root, filelist, users, groups):
     except PermissionError:
       print(f"<{line}> got a permission error")
     except FileNotFoundError:
-      print(f"<{line}> got a file not found error (Its containing folder doesn't exist?)")
+      print(f"<{line}> got a file not found error (either the file or the containing folder in the chroot do not exist)")
       
 def parse_users(passwd_file):
   users = {}
