@@ -5,6 +5,16 @@ if [ ! "$EUID" = "0" ] ; then
   exit 1
 fi
 
+# We need to find the location of this script, even if it's running from an alias or PATH or whatever tf. From https://stackoverflow.com/questions/59895/how-do-i-get-the-directory-where-a-bash-script-is-located-from-within-the-script
+SOURCE=${BASH_SOURCE[0]}
+while [ -L "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  DIR=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
+  SOURCE=$(readlink "$SOURCE")
+  [[ $SOURCE != /* ]] && SOURCE=$DIR/$SOURCE # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+# Get to this directory
+cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1
+
 do_automatic() {
   if [ -f "$OUTSIDE/$1".sh ] ; then
     bash "$OUTSIDE/$1".sh
@@ -101,6 +111,10 @@ fi
 # get line number (to remove config line): 
 
 export THIS_PROJECT=$(realpath projects/"$PROJECT_NAME")
+if [ ! -d "$THIS_PROJECT" ] ; then
+  echo "Project $THIS_PROJECT does not exist"
+  exit 1
+fi
 export STARTERS="$THIS_PROJECT"/start
 export OUTSIDE="$THIS_PROJECT"/outside
 export DATA="$THIS_PROJECT"/data
