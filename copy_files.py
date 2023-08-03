@@ -8,10 +8,14 @@ import shutil
 def require(list_, func):
   for thing in list_:
     if not func(thing):
-      sys.exit(f"Argument error: <{thing}> does not match <{func.__name__}>.")
+      sys.exit(f"Requirement error: <{thing}> does not match <{func.__name__}>.")
+  return True
 
 # Add more if necessary
 def copy_file(path1, path2):
+  # shutil.copytree passes strings, which don't have parent
+  if type(path2) == str:
+    path2 = Path(path2)
   if not os.path.exists(path2.parent):
     os.makedirs(path2.parent)
   shutil.copy2(path1, path2)
