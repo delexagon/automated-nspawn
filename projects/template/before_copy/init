@@ -1,5 +1,4 @@
 #!/bin/bash
-
 mkdir /home/_apt
 chown _apt /home/_apt
 apt update
@@ -15,5 +14,3 @@ usermod -aG sudo user
 usermod --password $(echo testing123 | openssl passwd -1 -stdin) root
 usermod --password $(echo testing123 | openssl passwd -1 -stdin) user
 usermod --shell /bin/bash user
-mv /home/fake_home/* /home/fake_home/.* /home/user
-rmdir /home/fake_home

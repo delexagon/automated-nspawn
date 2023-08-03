@@ -12,15 +12,24 @@ def require(list_, func):
   return True
 
 # Add more if necessary
-def copy_file(path1, path2):
+def copy_file(path1, path2, owner_id=None, group_id=None, perms=None):
   # shutil.copytree passes strings, which don't have parent
   if type(path2) == str:
     path2 = Path(path2)
-  if not os.path.exists(path2.parent):
-    os.makedirs(path2.parent)
   shutil.copy2(path1, path2)
+  if perms != None:
+    os.chmod(path2, perms)
   st = os.stat(path1)
-  os.chown(path1, st.st_uid, st.st_gid)
+  os.chown(path2, st.st_uid if owner_id == None else owner_id, st.st_gid if group_id == None else group_id)
+  
+def recursive_folder_fix(path, owner_id=None, group_id=None, perms=None):
+  next_dirs = [path/d for d in os.listdir(path) if os.path.isdir(d)]
+  if perms != None:
+    os.chmod(path, perms)
+  st = os.stat(path)
+  os.chown(path, st.st_uid if owner_id == None else owner_id, st.st_gid if group_id == None else group_id)
+  for dir_ in next_dirs:
+    recursive_folder_fix(owner_id=owner_id, group_id=group_id, perms=perms)
   
 def lines(filename):
   with open(filename) as f:
@@ -34,36 +43,78 @@ def remove(file_):
     shutil.rmtree(file_)
   elif os.path.isfile(file_):
     os.remove(file_)
+    
+def translate_usrgrp(id_or_name, id_dict):
+  if id_or_name.isdigit():
+    return int(id_or_name)
+  elif id_or_name in id_dict:
+    return id_dict[id_or_name]
+  else:
+    print(f"Invalid id or group {id_or_name}")
+    return None
 
 # /gaga/a --> /googoo/b
-def copy_files(source_root, target_root, filelist):
+def copy_files(source_root, target_root, filelist, users, groups):
   for line in lines(filelist):
+    owner_id = None
+    group_id = None
+    perms = None
+    parts = line.split(' // ')
+    for addition in parts[1:]:
+      if addition.startswith("owned: "):
+        # Interpret: 'owned: user:group' ; restraints user:group may be missing or could be an integer
+        usrgrp = addition[len("owned: "):].strip().split(':')
+        owner_id = translate_usrgrp(usrgrp[0], users)
+        group_id = translate_usrgrp(usrgrp[1], groups) if len(usrgrp) > 1 else None
+      elif addition.startswith("perms: "):
+        # Interpret: 'owned: user:group' ; restraints user:group may be missing or could be an integer
+        try:
+          perms = int(addition[len("perms: "):].strip(), 8)
+        except:
+          pass
     try:
-      a, b = line.split(' --> ')
+      a, b = parts[0].split(' --> ')
       # UNIX ONLY
       b = b.lstrip('/')
       tru_a = source_root/a
       tru_b = target_root/b
       if os.path.isdir(tru_a):
         remove(tru_b)
-        shutil.copytree(tru_a, tru_b, copy_function=copy_file)
+        shutil.copytree(tru_a, tru_b, symlinks=True, copy_function=lambda a,b: copy_file(a, b, owner_id=owner_id, group_id=group_id, perms=perms))
+        recursive_folder_fix(tru_b, owner_id=owner_id, group_id=group_id, perms=perms)
       elif os.path.isfile(tru_a):
-        copy_file(tru_a, tru_b)
+        copy_file(tru_a, tru_b, owner_id=owner_id, group_id=group_id, perms=perms)
       else:
         print(f"Couldn't copy <{tru_a}> because it doesn't exist!")
     except ValueError:
       print(f"<{line}> is not formatted correctly")
     except PermissionError:
       print(f"<{line}> got a permission error")
+      
+def parse_users(passwd_file):
+  users = {}
+  for line in lines(passwd_file):
+    split = line.split(':')
+    # groups[group name] = user id
+    users[split[0]] = int(split[2])
+  return users
+
+def parse_groups(groups_file):
+  groups = {}
+  for line in lines(groups_file):
+    split = line.split(':')
+    # groups[group name] = group id
+    groups[split[0]] = int(split[2])
+  return groups
   
 if __name__ == "__main__":
   parser = argparse.ArgumentParser()
   parser.add_argument('source_root', type=str)
   parser.add_argument('target_root', type=str)
   parser.add_argument('filelist', type=str)
+  parser.add_argument('passwd_file', type=str)
+  parser.add_argument('groups_file', type=str)
   args = parser.parse_args(sys.argv[1:])
   require([args.source_root, args.target_root], os.path.isdir)
   require([args.filelist], os.path.isfile)
-  copy_files(Path(args.source_root), Path(args.target_root), args.filelist)
-  
-  
+  copy_files(Path(args.source_root), Path(args.target_root), args.filelist, parse_users(args.passwd_file), parse_groups(args.groups_file))

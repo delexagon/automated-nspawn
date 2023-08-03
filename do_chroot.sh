@@ -19,8 +19,13 @@ do_automatic() {
   if [ -f "$OUTSIDE/$1".sh ] ; then
     bash "$OUTSIDE/$1".sh
   fi
+  if [ -f "$THIS_PROJECT/before_copy/$1" ] ; then
+    cp "$THIS_PROJECT/before_copy/$1" "$THIS_CHROOT/root/$1"
+    chmod 500 "$THIS_CHROOT/root/$1"
+    systemd-nspawn -D "$THIS_CHROOT" -a "/root/$1"
+  fi
   if [ -f "$COPY/$1".cp ] ; then
-    python3 copy_files.py "$DATA" "$THIS_CHROOT" "$COPY/$1".cp
+    python3 copy_files.py "$DATA" "$THIS_CHROOT" "$COPY/$1".cp "$THIS_CHROOT/etc/passwd" "$THIS_CHROOT/etc/group"
   fi
   if [ -f "$THIS_PROJECT/start/$1" ] ; then
     cp "$THIS_PROJECT/start/$1" "$THIS_CHROOT/root/$1"
@@ -126,7 +131,6 @@ if [ "$action" = init ] ; then
     exit 1
   fi
   
-  cp "$THIS_PROJECT/start/"* "$THIS_CHROOT/root"
   echo "$CHROOT_NAME $PROJECT_NAME" >> "$CONFIG_FILE"
 
   do_automatic "$action"
