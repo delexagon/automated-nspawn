@@ -63,7 +63,7 @@ if [ "$action" = init ] ; then
   
   export BUILD=${BUILD:-jammy}
   
-  export PROJECT_NAME=${1:-template}
+  export PROJECT_NAME=${1:-"$CHROOT_NAME"}
   
 elif [ "$action" = remove ] ; then
   rm -rf "$THIS_CHROOT"
