@@ -1,26 +1,31 @@
-idk
+Automates creating a systemd-nspawn container
+Requires that you run a debian linux distribution, with systemd as init. systemd-container and debootstrap apt packages must both be installed
 
-parts:
-copy from one place to another - COMPLETE
-a description of the changes that bring a computer to a state - NOT STARTED
-set up the chroot directory - COMPLETE
+Usage:
+sudo ./do_chroot.sh init <container-name> <project-name (default template)> <-b some-distribution-name>
+sudo ./do_chroot.sh remove <container-name>
+sudo ./do_chroot.sh <whatever> <container-name> <-p>
 
-These are the defined directories and files, which are used DIRECTLY by the chroot script:
-start_predefined/ -> $STARTERS internal scripts 
-  init.sh - automatically run during initialization (from /root)
-  reload.sh - run any time the container is restarted (from /root)
-data/ -> $DATA, all the files present on the pc, mapped by a copy file
-copy/ -> $COPY, descriptions of where to copy files
-  predefined/
-    init.sh - copies everything during initialization
-    reload.sh - copied whenever the container is restarted
-outside/ -> $OUTSIDE scripts occurring outside of the context of the box
-  predefined/
-    init.sh - run once
-    reload.sh - run every time 
-  
-order: outside runs -> copy runs -> script runs
+Note: Scripts RUN AS ROOT when done through this process. Make sure that you fully trust EVERY file that is present in templates.
+Note: For this to work, whatever is in projects/project-name/start/init must at least install systemd.
 
-what do we need to initialize the computer?
-- a list of files, and where they are
-- a list of commands to run
+init: generates a new chroot
+Note that both chroot names and actions can only have the characters a-zA-Z0-9_-
+Effects:
+ - If chroots/ does not exist, creates it
+ - Creates a chroots/container-name directory
+ - Adds debian files to chroots-container-name
+ - Appends 'container-name project-name' to config.txt
+ - Runs the script in projects/project-name/outside/init.sh (if it exists)
+ - Copies all files listed in projects/project-name/copy/init.cp into the chroot as specified (if it exists) (see template - file format is self evident)
+ - If there is a script projects/project-name/start/init, copies it into /root/init in the chroot and runs it as root from the context of the chroot
+remove: removes a chroot
+Effects:
+ - Removes chroots/container-name
+ - Removes the line in config.txt where the first column is container-name
+whatever: starts systemd-nspawn
+Effects:
+ - Runs the script in projects/project-name/outside/whatever.sh - this modifies the chroot permanently (if it exists)
+ - Copies all files listed in projects/project-name/copy/whatever.cp into the chroot as specified - this modifies the chroot permanently (if it exists)
+ - If there is a script projects/project-name/start/whatever, copies it into /root/whatever in the chroot and runs it as root from the context of the chroot - this modifies the chroot permanently
+ - Runs systemd-nspawn with systemd init process (requires the chroot to have installed systemd) in an ephemeral directory. If -p is specified, changes made in the chroot are persistent
