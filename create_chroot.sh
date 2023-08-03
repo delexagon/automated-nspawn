@@ -21,6 +21,10 @@ do_automatic() {
   fi
 }
 
+if [ ! -e 'chroots' ] ; then
+  mkdir chroots
+fi
+
 # Expectations: do_chroot.sh init name_of_chroot <project_name> <-b build>
 # Expectations: do_chroot.sh load name_of_chroot 
 action="$1"
