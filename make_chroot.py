@@ -5,9 +5,9 @@ import argparse
 import subprocess
 
 def requirements(*args):
-  for i, b in enumerate(args):
-    if not b:
-      sys.exit(f"Requirement {i} failed")
+  for (reason, bool_) in args:
+    if not bool_:
+      sys.exit(f"Requirement not fulfilled: {reason}")
 
 # Expects a list of tuples: constant, some boolean function required of the constant
 def require(list_, func):
@@ -36,10 +36,10 @@ if __name__ == "__main__":
   root = Path(args.chroots_dir).resolve()
   full_path = root/args.chroot_name
   requirements(
-    is_root(),
-    os.path.isdir(root),
-    is_direct_subdir(root, full_path),
-    not os.path.exists(full_path)
+    ("running as root", is_root()),
+    (f"{root} is dir", os.path.isdir(root)),
+    (f"{full_path} is subdir of {root}", is_direct_subdir(root, full_path)),
+    (f"{full_path} does not exist", not os.path.exists(full_path))
   )
   os.mkdir(full_path)
   debootstrap(full_path, build=args.build)
