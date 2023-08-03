@@ -72,7 +72,7 @@ def copy_files(source_root, target_root, filelist, users, groups):
         try:
           perms = int(addition[len("perms: "):].strip(), 8)
         except:
-          pass None
+          pass
       elif addition.startswith("folder-perms: "):
         # Interpret: 'owned: user:group' ; restraints user:group may be missing or could be an integer
         try:
