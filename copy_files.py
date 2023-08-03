@@ -29,7 +29,7 @@ def recursive_folder_fix(path, owner_id=None, group_id=None, perms=None):
   st = os.stat(path)
   os.chown(path, st.st_uid if owner_id == None else owner_id, st.st_gid if group_id == None else group_id)
   for dir_ in next_dirs:
-    recursive_folder_fix(owner_id=owner_id, group_id=group_id, perms=perms)
+    recursive_folder_fix(dir_, owner_id=owner_id, group_id=group_id, perms=perms)
   
 def lines(filename):
   with open(filename) as f:
