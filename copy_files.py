@@ -13,6 +13,9 @@ def require(list_, func):
 
 # Add more if necessary
 def copy_file(path1, path2, owner_id=None, group_id=None, perms=None):
+  # If this is a directory, we are a child file.
+  if os.path.isdir(path2):
+    path2 = path2/path1.name
   # shutil.copytree passes strings, which don't have parent
   if type(path2) == str:
     path2 = Path(path2)
@@ -23,6 +26,9 @@ def copy_file(path1, path2, owner_id=None, group_id=None, perms=None):
   os.chown(path2, st.st_uid if owner_id == None else owner_id, st.st_gid if group_id == None else group_id)
 
 def pretend_to_copy_file(path1, path2, owner_id=None, group_id=None, perms=None):
+  # If this is a directory, we are a child file.
+  if os.path.isdir(path2):
+    path2 = path2/path1.name
   # shutil.copytree passes strings, which don't have parent
   if type(path2) == str:
     path2 = Path(path2)
