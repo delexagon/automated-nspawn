@@ -1,0 +1,33 @@
+#!/bin/bash
+# Run this file so that automated nspawn commands will be autocompleted (using TAB) in bash.
+# Set AUTOMATED_NSPAWN_DIRECTORY to the base directory for this to work.
+if [ -z "$AUTOMATED_NSPAWN_DIRECTORY" ] ; then
+  echo 'Set AUTOMATED_NSPAWN_DIRECTORY=this folder'
+fi
+
+_AutomatedNspawnCompletion() {
+  local cur
+  COMPREPLY=()
+  
+  if [ "$COMP_CWORD" = 1 ]; then
+    cur=${COMP_WORDS[COMP_CWORD]}
+    
+    shopt -s nullglob
+    files=$(echo "$AUTOMATED_NSPAWN_DIRECTORY"/"$cur"*)
+    if [ ! -z "$files" ] ; then
+      COMPREPLY=($(basename -a $files))
+    fi
+    shopt -u nullglob
+  elif [ "$COMP_CWORD" = 2 ]; then
+    cur=${COMP_WORDS[COMP_CWORD]}
+    local prev=${COMP_WORDS[1]}
+    
+    shopt -s nullglob
+    
+    files=$(echo "$AUTOMATED_NSPAWN_DIRECTORY"/"$prev"/[bcos]*[yet]/"$cur"* $(compgen -W "init remove" "$cur"))
+    if [ ! -z "$files" ] ; then
+      COMPREPLY=($(basename -a $files))
+    fi
+    shopt -u nullglob
+  fi
+} ; complete -F _AutomatedNspawnCompletion dch
