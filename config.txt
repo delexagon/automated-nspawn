@@ -1,3 +1,0 @@
-test template
-psh psh
-apoweb apoweb
