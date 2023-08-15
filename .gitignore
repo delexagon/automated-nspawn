@@ -2,5 +2,6 @@
 /chroots/*
 /projects/*
 !/projects/template
+/projects/template/data/resolv.conf
 /__pycache__/
 /config.txt
