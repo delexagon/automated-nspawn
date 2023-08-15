@@ -3,4 +3,4 @@
 /projects/*
 !/projects/template
 /__pycache__/
-/.config.txt
+/config.txt
