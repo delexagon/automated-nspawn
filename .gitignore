@@ -1,3 +1,6 @@
 # All worthless files
 /chroots/*
+/projects/*
+!/projects/template
 /__pycache__/
+/.config.txt
