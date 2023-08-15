@@ -32,6 +32,8 @@ def pretend_to_copy_file(path1, path2, owner_id=None, group_id=None, perms=None)
   # shutil.copytree passes strings, which don't have parent
   if type(path2) == str:
     path2 = Path(path2)
+  if path2.exists():
+    path2.unlink()
   os.link(path1, path2)
   if perms != None:
     os.chmod(path2, perms)
@@ -117,6 +119,8 @@ def copy_files(source_root, target_root, filelist, users, groups):
       print(f"<{line}> is not formatted correctly")
     except PermissionError:
       print(f"<{line}> got a permission error")
+    except FileExistsError:
+      print(f"<{line}> got a file exists error. That's weird, thought I fixed that.")
     except FileNotFoundError:
       print(f"<{line}> got a file not found error (either the file or the containing folder in the chroot do not exist)")
       
