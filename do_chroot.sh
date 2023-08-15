@@ -73,8 +73,7 @@ if [ "$action" = init ] ; then
   
 elif [ "$action" = remove ] ; then
   rm -rf "$THIS_CHROOT"
-  line_number=$(awk -v name="$CHROOT_NAME" '$1 ~ name { print FNR ; exit }' "$CONFIG_FILE")
-  sed -i "$line_number"d "$CONFIG_FILE"
+  sed -i "/^$CHROOT_NAME /d" "$CONFIG_FILE"
   exit 0
 else
   if ! [ -d "$THIS_CHROOT" ] ; then
