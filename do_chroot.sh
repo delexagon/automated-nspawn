@@ -6,16 +6,16 @@ if [ ! "$EUID" = "0" ] ; then
 fi
 
 do_automatic() {
-  if [ -f "$OUTSIDE/$1".sh ] ; then
-    bash "$OUTSIDE/$1".sh
+  if [ -f "$OUTSIDE/$1" ] ; then
+    bash "$OUTSIDE/$1"
   fi
   if [ -f "$THIS_PROJECT/before_copy/$1" ] ; then
     cp "$THIS_PROJECT/before_copy/$1" "$THIS_CHROOT/root/$1"
     chmod 500 "$THIS_CHROOT/root/$1"
     systemd-nspawn -D "$THIS_CHROOT" -a "/root/$1"
   fi
-  if [ -f "$COPY/$1".cp ] ; then
-    python3 copy_files.py "$DATA" "$THIS_CHROOT" "$COPY/$1".cp "$THIS_CHROOT/etc/passwd" "$THIS_CHROOT/etc/group"
+  if [ -f "$COPY/$1" ] ; then
+    python3 copy_files.py "$DATA" "$THIS_CHROOT" "$COPY/$1" "$THIS_CHROOT/etc/passwd" "$THIS_CHROOT/etc/group"
   fi
   if [ -f "$THIS_PROJECT/start/$1" ] ; then
     cp "$THIS_PROJECT/start/$1" "$THIS_CHROOT/root/$1"
@@ -28,10 +28,11 @@ if [ ! -e 'chroots' ] ; then
   mkdir chroots
 fi
 
-# Expectations: do_chroot.sh init name_of_chroot <project_name> <-b build>
-# Expectations: do_chroot.sh load name_of_chroot 
-action="$1"
-CHROOT_NAME="$2"
+# Expectations: do_chroot.sh name_of_chroot init <project_name> <-b build>
+# Expectations: do_chroot.sh name_of_chroot load
+# Expectations: do_chroot.sh name_of_chroot remove
+action="$2"
+CHROOT_NAME="$1"
 if ! [[ "$CHROOT_NAME" =~ ^[a-zA-Z0-9_-]*$ ]] ; then
   echo "Invalid chroot name"
   exit 1
@@ -114,6 +115,7 @@ export STARTERS="$THIS_PROJECT"/start
 export OUTSIDE="$THIS_PROJECT"/outside
 export DATA="$THIS_PROJECT"/data
 export COPY="$THIS_PROJECT"/copy
+export EXTRA="$THIS_PROJECT"/extra
   
 if [ "$action" = init ] ; then
   if ! python3 make_chroot.py "chroots" "$CHROOT_NAME" "$BUILD" ; then

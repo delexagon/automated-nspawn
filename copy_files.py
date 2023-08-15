@@ -21,7 +21,18 @@ def copy_file(path1, path2, owner_id=None, group_id=None, perms=None):
     os.chmod(path2, perms)
   st = os.stat(path1)
   os.chown(path2, st.st_uid if owner_id == None else owner_id, st.st_gid if group_id == None else group_id)
-  
+
+def pretend_to_copy_file(path1, path2, owner_id=None, group_id=None, perms=None):
+  # shutil.copytree passes strings, which don't have parent
+  if type(path2) == str:
+    path2 = Path(path2)
+  os.link(path1, path2)
+  if perms != None:
+    os.chmod(path2, perms)
+  st = os.stat(path1)
+  os.chown(path2, st.st_uid if owner_id == None else owner_id, st.st_gid if group_id == None else group_id)
+
+
 def recursive_folder_fix(path, owner_id=None, group_id=None, perms=None):
   next_dirs = [path/d for d in os.listdir(path) if os.path.isdir(path/d)]
   if perms != None:
@@ -55,6 +66,7 @@ def translate_usrgrp(id_or_name, id_dict):
 
 # /gaga/a --> /googoo/b
 def copy_files(source_root, target_root, filelist, users, groups):
+  cp_func = copy_file
   for line in lines(filelist):
     owner_id = None
     group_id = None
@@ -79,6 +91,8 @@ def copy_files(source_root, target_root, filelist, users, groups):
           folder_perms = int(addition[len("folder-perms: "):].strip(), 8)
         except:
           pass
+      elif addition.startswith("linked"):
+        cp_func = pretend_to_copy_file
     try:
       a, b = parts[0].split(' --> ')
       # UNIX ONLY
@@ -87,10 +101,10 @@ def copy_files(source_root, target_root, filelist, users, groups):
       tru_b = target_root/b
       if os.path.isdir(tru_a):
         remove(tru_b)
-        shutil.copytree(tru_a, tru_b, symlinks=True, copy_function=lambda a,b: copy_file(a, b, owner_id=owner_id, group_id=group_id, perms=perms))
+        shutil.copytree(tru_a, tru_b, symlinks=True, copy_function=lambda a,b: cp_func(a, b, owner_id=owner_id, group_id=group_id, perms=perms))
         recursive_folder_fix(tru_b, owner_id=owner_id, group_id=group_id, perms=folder_perms)
       elif os.path.isfile(tru_a):
-        copy_file(tru_a, tru_b, owner_id=owner_id, group_id=group_id, perms=perms)
+        cp_func(tru_a, tru_b, owner_id=owner_id, group_id=group_id, perms=perms)
       else:
         print(f"Couldn't copy <{tru_a}> because it doesn't exist!")
     except ValueError:
