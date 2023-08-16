@@ -127,6 +127,11 @@ if [ "$action" = init ] ; then
   do_automatic "$action"
 
 else
+  
   do_automatic "$action"
+  for other_action in "$@" ; do
+    do_automatic "$other_action"
+  done
+  
   systemd-nspawn $permanent -b -D "$THIS_CHROOT"
 fi
