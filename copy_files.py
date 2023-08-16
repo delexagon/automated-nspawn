@@ -36,7 +36,8 @@ def pretend_to_copy_file(path1, path2, owner_id=None, group_id=None, perms=None)
   # If this is a directory, we are a child file.
   if path2.is_dir():
     path2 = path2/path1.name
-  if path2.exists():
+  # If path2 is a nonexistent symlink, path2.exists returns false. Are you fucking kidding me?
+  if path2.exists() or path2.is_symlink():
     path2.unlink()
   os.link(path1, path2)
   if perms != None:
@@ -78,8 +79,8 @@ def translate_usrgrp(id_or_name, id_dict):
 
 # /gaga/a --> /googoo/b
 def copy_files(source_root, target_root, filelist, users, groups):
-  cp_func = copy_file
   for line in lines(filelist):
+    cp_func = copy_file
     owner_id = None
     group_id = None
     perms = None
