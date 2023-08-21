@@ -3,6 +3,7 @@ import sys
 from pathlib import Path
 import argparse
 import shutil
+import glob
 
 # Expects a list of tuples: constant, some boolean function required of the constant
 def require(list_, func):
@@ -85,7 +86,9 @@ def copy_files(source_root, target_root, filelist, users, groups):
     group_id = None
     perms = None
     folder_perms = None
+    multi_files = None
     parts = line.split(' // ')
+    glob = False
     for addition in parts[1:]:
       if addition.startswith("owned: "):
         # Interpret: 'owned: user:group' ; restraints user:group may be missing or could be an integer
@@ -106,20 +109,35 @@ def copy_files(source_root, target_root, filelist, users, groups):
           pass
       elif addition.startswith("linked"):
         cp_func = pretend_to_copy_file
+      elif addition.startswith("glob"):
+        glob = True
     try:
       a, b = parts[0].split(' --> ')
       # UNIX ONLY
       b = b.lstrip('/')
-      tru_a = source_root/a
       tru_b = target_root/b
-      if os.path.isdir(tru_a):
-        remove(tru_b)
-        shutil.copytree(tru_a, tru_b, symlinks=True, copy_function=lambda a,b: cp_func(a, b, owner_id=owner_id, group_id=group_id, perms=perms))
-        recursive_folder_fix(tru_b, owner_id=owner_id, group_id=group_id, perms=folder_perms)
-      elif os.path.isfile(tru_a):
-        cp_func(tru_a, tru_b, owner_id=owner_id, group_id=group_id, perms=perms)
+      if not glob:
+        tru_a = source_root/a
+        if os.path.isdir(tru_a):
+          remove(tru_b)
+          shutil.copytree(tru_a, tru_b, symlinks=True, copy_function=lambda a,b: cp_func(a, b, owner_id=owner_id, group_id=group_id, perms=perms))
+          recursive_folder_fix(tru_b, owner_id=owner_id, group_id=group_id, perms=folder_perms)
+        elif os.path.isfile(tru_a):
+          cp_func(tru_a, tru_b, owner_id=owner_id, group_id=group_id, perms=perms)
+        else:
+          print(f"Couldn't copy <{tru_a}> because it doesn't exist!")
       else:
-        print(f"Couldn't copy <{tru_a}> because it doesn't exist!")
+        for file_ in [Path(x) for x in glob.glob(a, root_dir=source_root, recursive=True)]
+          tru_sub_a = file_
+          tru_sub_b = tru_b/file_.name
+          if os.path.isdir(tru_a):
+            remove(tru_sub_b)
+            shutil.copytree(tru_sub_a, tru_sub_b, symlinks=True, copy_function=lambda a,b: cp_func(a, b, owner_id=owner_id, group_id=group_id, perms=perms))
+            recursive_folder_fix(tru_sub_b, owner_id=owner_id, group_id=group_id, perms=folder_perms)
+          elif os.path.isfile(tru_sub_a):
+            cp_func(tru_sub_a, tru_sub_b, owner_id=owner_id, group_id=group_id, perms=perms)
+          else:
+            print(f"Couldn't copy <{tru_a}> because it doesn't exist!")
     except ValueError:
       print(f"<{line}> is not formatted correctly")
     except PermissionError:

@@ -38,6 +38,7 @@ Copy script commands (affects the base instance):
  - // folder-perms: 775 : This changes the permissions of all directories to 775 recursively
  - // owned: foo:foo_group : This recursively changes the user and group ownership of the file/directory. foo changes user ownership of the directory to foo, :foo_group changes group ownership to foo_group. Users and groups are read from the chroot, not the home machine. You can also use numbers, like 0:0 to change ownership to root.
  - // linked : All files recursively present in the directory (not the directories themselves) will be hard linked to the files in projects/. This means that files in the persistent chroot (-p) will change when files in the projects/directory are changed, without needing to reload the container. Using // perms: or // owned: with this command will also change the permissions of the files in projects/. New files created in the directory will not be automatically updated, and copy and move commands will not affect the linkage (or create new links).
+ - // glob : This filepath is globbed. In this case, the destination MUST refer to an existing directory in the chroot, and all globbed files will be placed in the directory under the same name as they are in data/.
  
 Bash completion:
 To enable bash completion (using TAB in bash to automatically complete commands), read the initial comment and run the .bash_completions script. The AUTOMATED_NSPAWN_DIRECTORY variable will have to be set.
