@@ -129,7 +129,7 @@ def copy_files(source_root, target_root, filelist, users, groups):
         for file_ in [source_root/x for x in glob.glob(a, root_dir=source_root, recursive=True)]:
           tru_sub_a = file_
           tru_sub_b = tru_b/file_.name
-          if os.path.isdir(tru_a):
+          if os.path.isdir(tru_sub_a):
             remove(tru_sub_b)
             shutil.copytree(tru_sub_a, tru_sub_b, symlinks=True, copy_function=lambda a,b: cp_func(a, b, owner_id=owner_id, group_id=group_id, perms=perms))
             recursive_folder_fix(tru_sub_b, owner_id=owner_id, group_id=group_id, perms=folder_perms)
