@@ -87,7 +87,7 @@ def copy_files(source_root, target_root, filelist, users, groups):
     perms = None
     folder_perms = None
     parts = line.split(' // ')
-    glob = False
+    globbing = False
     for addition in parts[1:]:
       if addition.startswith("owned: "):
         # Interpret: 'owned: user:group' ; restraints user:group may be missing or could be an integer
@@ -109,13 +109,13 @@ def copy_files(source_root, target_root, filelist, users, groups):
       elif addition.startswith("linked"):
         cp_func = pretend_to_copy_file
       elif addition.startswith("glob"):
-        glob = True
+        globbing = True
     try:
       a, b = parts[0].split(' --> ')
       # UNIX ONLY
       b = b.lstrip('/')
       tru_b = target_root/b
-      if not glob:
+      if not globbing:
         tru_a = source_root/a
         if os.path.isdir(tru_a):
           remove(tru_b)
