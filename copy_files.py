@@ -86,7 +86,6 @@ def copy_files(source_root, target_root, filelist, users, groups):
     group_id = None
     perms = None
     folder_perms = None
-    multi_files = None
     parts = line.split(' // ')
     glob = False
     for addition in parts[1:]:
@@ -137,7 +136,7 @@ def copy_files(source_root, target_root, filelist, users, groups):
           elif os.path.isfile(tru_sub_a):
             cp_func(tru_sub_a, tru_sub_b, owner_id=owner_id, group_id=group_id, perms=perms)
           else:
-            print(f"Couldn't copy <{tru_a}> because it doesn't exist!")
+            print(f"Couldn't copy <{tru_sub_a}> because it doesn't exist!")
     except ValueError:
       print(f"<{line}> is not formatted correctly")
     except PermissionError:
