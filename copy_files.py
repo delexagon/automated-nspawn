@@ -126,7 +126,7 @@ def copy_files(source_root, target_root, filelist, users, groups):
         else:
           print(f"Couldn't copy <{tru_a}> because it doesn't exist!")
       else:
-        for file_ in [Path(x) for x in glob.glob(a, root_dir=source_root, recursive=True)]:
+        for file_ in [source_root/x for x in glob.glob(a, root_dir=source_root, recursive=True)]:
           tru_sub_a = file_
           tru_sub_b = tru_b/file_.name
           if os.path.isdir(tru_a):
