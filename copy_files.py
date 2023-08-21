@@ -21,7 +21,7 @@ def copy_file(path1, path2, owner_id=None, group_id=None, perms=None):
     path2 = path2/path1.name
   # shutil.copy2 will follow symlinks when copying, even if follow_symlinks is False.
   # To replace the file, we remove the symlink ourself.
-  if path2.is_symlink():
+  if path2.exists() or path2.is_symlink():
     path2.unlink()
   shutil.copy2(path1, path2, follow_symlinks=False)
   if perms != None:
