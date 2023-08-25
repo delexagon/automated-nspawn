@@ -83,6 +83,7 @@ fi
 
 # A script. Expected to set bash variables, run as source here.
 export CONFIG="$THIS_PROJECT"/config.sh
+export DISTRIBUTION=${DISTRIBUTION:-stable}
 # Data should have all files necessary for the project to be run
 export DATA="$THIS_PROJECT"/data
 
