@@ -35,18 +35,21 @@ do_automatic() {
   if [ -f "$OUTSIDE/$1" ] ; then
     bash "$OUTSIDE/$1"
   fi
-  if [ -f "$THIS_PROJECT/before_copy/$1" ] ; then
-    cp "$THIS_PROJECT/before_copy/$1" "$THIS_CHROOT/root/$1"
+  if [ -f "$BEFORE_COPY/$1" ] ; then
+    cp "$BEFORE_COPY/$1" "$THIS_CHROOT/root/$1"
     chmod 500 "$THIS_CHROOT/root/$1"
     run_script_in_chroot "/root/$1"
   fi
   if [ -f "$COPY/$1" ] ; then
     python3 copy_files.py "$DATA" "$THIS_CHROOT" "$COPY/$1" "$THIS_CHROOT/etc/passwd" "$THIS_CHROOT/etc/group"
   fi
-  if [ -f "$THIS_PROJECT/start/$1" ] ; then
-    cp "$THIS_PROJECT/start/$1" "$THIS_CHROOT/root/$1"
+  if [ -f "$STARTERS/$1" ] ; then
+    cp "$STARTERS/$1" "$THIS_CHROOT/root/$1"
     chmod 500 "$THIS_CHROOT/root/$1"
     run_script_in_chroot "/root/$1"
+  fi
+  if [ -f "$AFTER/$1" ] ; then
+    bash "$AFTER/$1"
   fi
 }
 
@@ -75,12 +78,22 @@ if [ ! -d "$THIS_PROJECT" ] ; then
   echo "Project $THIS_PROJECT does not exist"
   exit 1
 fi
-export STARTERS="$THIS_PROJECT"/start
-export OUTSIDE="$THIS_PROJECT"/outside
-export DATA="$THIS_PROJECT"/data
-export COPY="$THIS_PROJECT"/copy
-export EXTRA="$THIS_PROJECT"/extra
+
+# Export project files
+
+# A script. Expected to set bash variables, run as source here.
 export CONFIG="$THIS_PROJECT"/config.sh
+# Data should have all files necessary for the project to be run
+export DATA="$THIS_PROJECT"/data
+
+# In order of when scripts are run. 'Outside' and 'After' are run outside the chroot,
+# 'Before_copy' and 'Starters' are run in the chroot before and after copying from Data,
+# 'Copy' are special copy scripts (defined in copy_files.py) that move files from $DATA to the chroot
+export OUTSIDE="$THIS_PROJECT"/outside
+export BEFORE_COPY="$THIS_PROJECT"/before_copy
+export COPY="$THIS_PROJECT"/copy
+export STARTERS="$THIS_PROJECT"/start
+export AFTER="$THIS_PROJECT"/after
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -114,6 +127,6 @@ for action in "$@" ; do
   do_special "$action"
   do_automatic "$action"
 done
-if [ ! "$is_production" ] && [ -d "$THIS_CHROOT" ] ; then
+if [ ! "$is_production" ] && [ ! "$NO_ENTER" ] && [ -d "$THIS_CHROOT" ] ; then
   systemd-nspawn $permanent -b -D "$THIS_CHROOT"
 fi
