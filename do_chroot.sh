@@ -15,7 +15,7 @@ run_script_in_chroot() {
 }
 
 do_special() {
-  if [ "$1" = init ] ; then
+  if [ "$1" = init ] && [ ! "$is_production" ] ; then
     if ! python3 make_chroot.py "chroots" "$CHROOT_NAME" "$DISTRIBUTION" ; then
       echo "Making chroot failed"
       exit 1
