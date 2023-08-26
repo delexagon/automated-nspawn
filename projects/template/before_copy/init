@@ -1,4 +1,5 @@
 #!/bin/bash
+. /root/config.sh
 mkdir /home/_apt
 chown _apt /home/_apt
 apt update
@@ -9,8 +10,8 @@ apt install --yes bash
 apt install --yes openssl
 apt install --yes curl
 apt install --yes net-tools
-useradd -m user
-usermod -aG sudo user
-usermod --password $(echo testing123 | openssl passwd -1 -stdin) root
-usermod --password $(echo testing123 | openssl passwd -1 -stdin) user
-usermod --shell /bin/bash user
+useradd -m "$USER"
+usermod -aG sudo "$USER"
+usermod --password $(openssl passwd -1 "$PASSWORD") root
+usermod --password $(openssl passwd -1 "$PASSWORD") "$USER"
+usermod --shell /bin/bash "$USER"

@@ -4,6 +4,7 @@ from pathlib import Path
 import argparse
 import shutil
 import glob
+from os.path import expandvars
 
 # Expects a list of tuples: constant, some boolean function required of the constant
 def require(list_, func):
@@ -87,6 +88,8 @@ def copy_files(source_root, target_root, filelist, users, groups):
     perms = None
     folder_perms = None
     parts = line.split(' // ')
+    # Ugh, need to include bash variables
+    parts[0] = expandvars(parts[0])
     globbing = False
     for addition in parts[1:]:
       if addition.startswith("owned: "):

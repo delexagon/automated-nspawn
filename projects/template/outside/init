@@ -1,2 +1,3 @@
 #!/bin/bash
 cp /etc/resolv.conf "$DATA"/resolv.conf
+cp "$CONFIG" "$THIS_CHROOT/root/config.sh"
